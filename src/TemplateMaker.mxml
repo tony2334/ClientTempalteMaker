@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   creationComplete="init()">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			
+			import flash.display.Sprite;
+			import flash.filesystem.File;
+			import flash.filesystem.FileMode;
+			import flash.filesystem.FileStream;
+			import flash.utils.ByteArray;
+			import flash.net.URLLoader;
+			
+			import mx.controls.Alert;  
+			import mx.events.CloseEvent; 
+			
+			import IncludeAll;			
+			
+			private var _loader:URLLoader;
+			
+			public function init() : void
+			{											
+				var gameData:Object = {};
+				gameData.name = IncludeAll.name;
+				gameData.value = IncludeAll.value;		
+				
+				var bytes:ByteArray = new ByteArray();
+	
+				bytes.writeObject(gameData);
+			
+				trace("before compress len: ", bytes.length);
+				bytes.compress();
+				trace("after compress len: ", bytes.length);
+				
+				
+				var file:File = new File( File.applicationDirectory.resolvePath( "GameTemp.dat" ).nativePath );
+				var stream:FileStream = new FileStream();
+				stream.open(file, FileMode.WRITE);
+				stream.position = 0;
+				
+				stream.writeBytes( bytes );
+				stream.close();
+
+				trace("done: ");
+				
+				//Alert.show("GameTemp.dat 生成成功", "Save Changes", 4, this);		
+				
+				txt.text += "\nGameTemp.dat 生成成功";
+					
+				var nativeApp:Object =  getDefinitionByName("flash.desktop.NativeApplication");
+				nativeApp.nativeApplication.exit();
+			}
+			
+			private function gameTempLoadComplete( e :Event ) : void 
+			{
+				var tmploader:URLLoader = e.currentTarget as URLLoader;
+				var gameTemp:ByteArray = tmploader.data;
+
+				trace("before uncompress len: ", gameTemp.length);
+				gameTemp.uncompress();
+
+//				var gameTempData:* = gameTemp.readObject();
+//				trace("after uncompress len: ", gameTemp.length);
+			}
+			private function ioHandler(event:IOErrorEvent):void
+			{
+				// 加载默认地图资源。
+			}
+			
+		]]>
+	</fx:Script>
+	<s:TextArea id="txt" x="50" y="70" text="正在加载..." width="194" height="155"/>
+	
+	
+</s:WindowedApplication>
